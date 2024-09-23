@@ -16,7 +16,22 @@ class PointServiceTest {
     PointService pointService;
 
     @Test
-    @DisplayName("특정유저의 포인트 조회시 유저의 id와 유저포인트의 id는 동일하다")
+    @DisplayName("특정유저의 포인트 조회시 유저의 id가 0이하인 경우 USER_ID_ERROR 오류가 발생한다")
+    void findOneUserPoint_then_USER_ID_ERROR() {
+        // 특정유저의 id
+        long id = 0L;
+
+        // 포인트 조회시 오류발생
+        CustomException e = assertThrows(CustomException.class, () -> {
+            pointService.findOneUserPoint(id);
+        });
+
+        // 오류코드 검증
+        assertEquals(ErrorCode.USER_ID_ERROR.getCode(), e.getErrorCode().getCode());
+    }
+
+    @Test
+    @DisplayName("특정유저의 포인트 조회성공 시 유저의 id와 유저포인트의 id는 동일하다")
     void findOneUserPoint() {
         // 특정유저의 id
         long id = 1L;

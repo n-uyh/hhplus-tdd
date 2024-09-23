@@ -18,6 +18,10 @@ public class PointService {
      * 특정유저의 포인트 조회
      */
     public UserPoint findOneUserPoint(long id) {
+        // user 검증 - 유저 id가 0 이하인 경우 오류 발생
+        if (id <= 0) {
+            throw new CustomException(ErrorCode.USER_ID_ERROR);
+        }
         return userPointTable.selectById(id);
     }
 
