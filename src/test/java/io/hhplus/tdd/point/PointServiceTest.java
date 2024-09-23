@@ -22,9 +22,7 @@ class PointServiceTest {
         long id = 0L;
 
         // 포인트 조회시 오류발생
-        CustomException e = assertThrows(CustomException.class, () -> {
-            pointService.findOneUserPoint(id);
-        });
+        CustomException e = assertThrows(CustomException.class, () -> pointService.findOneUserPoint(id));
 
         // 오류코드 검증
         assertEquals(ErrorCode.USER_ID_ERROR.getCode(), e.getErrorCode().getCode());
@@ -52,18 +50,14 @@ class PointServiceTest {
         long amount = 2000;
 
         // 충전시 오류발생
-        CustomException e = assertThrows(CustomException.class, () -> {
-            pointService.charge(id, amount);
-        });
+        CustomException e = assertThrows(CustomException.class, () -> pointService.charge(id, amount));
 
         // 오류코드 검증
         assertEquals(ErrorCode.USER_ID_ERROR.getCode(), e.getErrorCode().getCode());
 
         // case2
         long id2 = -1;
-        CustomException e2 = assertThrows(CustomException.class, () -> {
-            pointService.charge(id, amount);
-        });
+        CustomException e2 = assertThrows(CustomException.class, () -> pointService.charge(id2, amount));
         assertEquals(ErrorCode.USER_ID_ERROR.getCode(), e2.getErrorCode().getCode());
     }
 
@@ -76,18 +70,14 @@ class PointServiceTest {
         long amount = 0;
 
         // 충전시 오류발생
-        CustomException e = assertThrows(CustomException.class, () -> {
-            pointService.charge(id, amount);
-        });
+        CustomException e = assertThrows(CustomException.class, () -> pointService.charge(id, amount));
 
         // 오류코드 검증
         assertEquals(ErrorCode.POINT_AMOUNT_ERROR.getCode(), e.getErrorCode().getCode());
 
         // case2
         long amount2 = -2000;
-        CustomException e2 = assertThrows(CustomException.class, () -> {
-            pointService.charge(id, amount2);
-        });
+        CustomException e2 = assertThrows(CustomException.class, () -> pointService.charge(id, amount2));
         assertEquals(ErrorCode.POINT_AMOUNT_ERROR.getCode(), e2.getErrorCode().getCode());
     }
 

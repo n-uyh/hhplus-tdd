@@ -11,6 +11,6 @@ public enum ErrorCode {
 
     POINT_AMOUNT_ERROR("PO001", "포인트 금액 오류입니다.");
 
-    private String code;
-    private String message;
+    private final String code;
+    private final String message;
 }
