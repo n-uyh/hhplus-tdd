@@ -48,16 +48,17 @@ class PointServiceTest {
         // 특정유저의 id, 충전 금액
         long id = 0;
         long amount = 2000;
+        TransactionType type = TransactionType.CHARGE;
 
         // 충전시 오류발생
-        CustomException e = assertThrows(CustomException.class, () -> pointService.charge(id, amount));
+        CustomException e = assertThrows(CustomException.class, () -> pointService.chargeOrUse(id, amount, type));
 
         // 오류코드 검증
         assertEquals(ErrorCode.USER_ID_ERROR.getCode(), e.getErrorCode().getCode());
 
         // case2
         long id2 = -1;
-        CustomException e2 = assertThrows(CustomException.class, () -> pointService.charge(id2, amount));
+        CustomException e2 = assertThrows(CustomException.class, () -> pointService.chargeOrUse(id2, amount, type));
         assertEquals(ErrorCode.USER_ID_ERROR.getCode(), e2.getErrorCode().getCode());
     }
 
@@ -68,16 +69,17 @@ class PointServiceTest {
         // 특정유저의 id, 충전 금액
         long id = 1L;
         long amount = 0;
+        TransactionType type = TransactionType.CHARGE;
 
         // 충전시 오류발생
-        CustomException e = assertThrows(CustomException.class, () -> pointService.charge(id, amount));
+        CustomException e = assertThrows(CustomException.class, () -> pointService.chargeOrUse(id, amount, type));
 
         // 오류코드 검증
         assertEquals(ErrorCode.POINT_AMOUNT_ERROR.getCode(), e.getErrorCode().getCode());
 
         // case2
         long amount2 = -2000;
-        CustomException e2 = assertThrows(CustomException.class, () -> pointService.charge(id, amount2));
+        CustomException e2 = assertThrows(CustomException.class, () -> pointService.chargeOrUse(id, amount2, type));
         assertEquals(ErrorCode.POINT_AMOUNT_ERROR.getCode(), e2.getErrorCode().getCode());
     }
 
@@ -87,12 +89,13 @@ class PointServiceTest {
         // case1
         long id = 1L;
         long amount = 2000;
+        TransactionType type = TransactionType.CHARGE;
 
-        UserPoint userPoint = pointService.charge(id, amount);
+        UserPoint userPoint = pointService.chargeOrUse(id, amount, type);
         assertEquals(userPoint.point(), amount);
 
         // case2 (같은유저가 한번더 충전)
-        UserPoint userPoint2 = pointService.charge(id, amount);
+        UserPoint userPoint2 = pointService.chargeOrUse(id, amount, type);
         assertEquals(userPoint2.point(), 2 * amount);
     }
 
