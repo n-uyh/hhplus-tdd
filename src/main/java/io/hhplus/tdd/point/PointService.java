@@ -27,9 +27,9 @@ public class PointService {
 
 
     /**
-     * 특정유저의 포인트 충전
+     * 특정유저의 포인트 충전 및 사용
      */
-    public UserPoint charge(long id, long amount) {
+    public UserPoint chargeOrUse(long id, long amount, TransactionType type) {
         // user 검증 - 유저 id가 0 이하인 경우 오류 발생
         if (id <= 0) {
             throw new CustomException(ErrorCode.USER_ID_ERROR);
@@ -41,10 +41,10 @@ public class PointService {
         }
 
         // point history insert
-        pointHistoryTable.insert(id, amount, TransactionType.CHARGE, System.currentTimeMillis());
+        pointHistoryTable.insert(id, amount, type, System.currentTimeMillis());
 
         // userPoint update & return
         UserPoint userPoint = userPointTable.selectById(id);
-        return userPointTable.insertOrUpdate(id, userPoint.point() + amount);
+        return userPointTable.insertOrUpdate(id, userPoint.point() + amount * type.getSign());
     }
 }
