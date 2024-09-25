@@ -8,10 +8,12 @@ import static org.mockito.Mockito.when;
 
 import io.hhplus.tdd.CustomException;
 import io.hhplus.tdd.ErrorCode;
+import io.hhplus.tdd.point.entity.PointHistory;
 import io.hhplus.tdd.point.entity.UserPoint;
 import io.hhplus.tdd.point.repository.PointHistoryRepository;
 import io.hhplus.tdd.point.repository.UserPointRepository;
 import io.hhplus.tdd.point.service.PointService;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -129,6 +131,23 @@ class PointServiceTest {
         long use = 200L;
         UserPoint userPoint2 = pointService.chargeOrUse(id, use, TransactionType.USE);
         assertEquals(4800L,  userPoint2.point());
+    }
+
+    @Test
+    @DisplayName("특정유저의 포인트 충전/사용 내역 조회")
+    void findPointHistoriesByUserId() {
+        long id = 1L;
+
+        when(pointHistoryRepository.selectAllByUserId(id))
+            .thenReturn(List.of(
+                new PointHistory(1,id,3000L,TransactionType.CHARGE,System.currentTimeMillis()),
+                new PointHistory(2,id,2500L,TransactionType.USE,System.currentTimeMillis())
+            ));
+
+        List<PointHistory> histories = pointService.findPointHistoriesByUserId(id);
+
+        assertEquals(2, histories.size());
+        assertEquals(id, histories.get(0).id());
     }
 
 }

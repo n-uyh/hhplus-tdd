@@ -3,9 +3,11 @@ package io.hhplus.tdd.point.service;
 import io.hhplus.tdd.CustomException;
 import io.hhplus.tdd.ErrorCode;
 import io.hhplus.tdd.point.TransactionType;
+import io.hhplus.tdd.point.entity.PointHistory;
 import io.hhplus.tdd.point.entity.UserPoint;
 import io.hhplus.tdd.point.repository.PointHistoryRepository;
 import io.hhplus.tdd.point.repository.UserPointRepository;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -48,5 +50,12 @@ public class PointService {
         // userPoint update & return
         UserPoint userPoint = this.userPointRepository.selectById(id);
         return this.userPointRepository.insertOrUpdate(id, userPoint.point() + amount * type.getSign());
+    }
+
+    /**
+     * 특정유저의 포인트 충전/사용 내역 조회
+     */
+    public List<PointHistory> findPointHistoriesByUserId(long userId) {
+        return pointHistoryRepository.selectAllByUserId(userId);
     }
 }
