@@ -8,8 +8,10 @@ import static org.mockito.Mockito.when;
 
 import io.hhplus.tdd.CustomException;
 import io.hhplus.tdd.ErrorCode;
+import io.hhplus.tdd.point.entity.UserPoint;
 import io.hhplus.tdd.point.repository.PointHistoryRepository;
 import io.hhplus.tdd.point.repository.UserPointRepository;
+import io.hhplus.tdd.point.service.PointService;
 import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

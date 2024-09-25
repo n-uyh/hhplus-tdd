@@ -1,7 +1,9 @@
-package io.hhplus.tdd.point;
+package io.hhplus.tdd.point.service;
 
 import io.hhplus.tdd.CustomException;
 import io.hhplus.tdd.ErrorCode;
+import io.hhplus.tdd.point.TransactionType;
+import io.hhplus.tdd.point.entity.UserPoint;
 import io.hhplus.tdd.point.repository.PointHistoryRepository;
 import io.hhplus.tdd.point.repository.UserPointRepository;
 import lombok.RequiredArgsConstructor;
