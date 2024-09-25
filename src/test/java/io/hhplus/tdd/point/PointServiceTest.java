@@ -1,19 +1,32 @@
 package io.hhplus.tdd.point;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.when;
 
 import io.hhplus.tdd.CustomException;
 import io.hhplus.tdd.ErrorCode;
+import io.hhplus.tdd.point.repository.PointHistoryRepository;
+import io.hhplus.tdd.point.repository.UserPointRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class PointServiceTest {
 
-    @Autowired
-    PointService pointService;
+    @Mock
+    private UserPointRepository userPointRepository;
+
+    @Mock
+    private PointHistoryRepository pointHistoryRepository;
+
+    @InjectMocks
+    private PointService pointService;
+
 
     @Test
     @DisplayName("특정유저의 포인트 조회시 유저의 id가 0이하인 경우 USER_ID_ERROR 오류가 발생한다")
@@ -33,12 +46,15 @@ class PointServiceTest {
     void findOneUserPoint() {
         // 특정유저의 id
         long id = 1L;
+        long existingPoint = 300L;
+        when(userPointRepository.selectById(id)).thenReturn(new UserPoint(id,existingPoint,System.currentTimeMillis()));
 
         // 특정유저의 포인트 조회
         UserPoint userPoint = pointService.findOneUserPoint(id);
 
         // 검증
         assertEquals(id, userPoint.id());
+        assertEquals(existingPoint, userPoint.point());
     }
 
     @Test
@@ -88,15 +104,16 @@ class PointServiceTest {
     void chargeUserPoint() {
         // case1
         long id = 1L;
-        long amount = 2000;
+        long amount = 2000L;
+        long existingPoint = 3000L;
+        when(userPointRepository.selectById(id))
+            .thenReturn(new UserPoint(id,existingPoint,System.currentTimeMillis()));
+        when(userPointRepository.insertOrUpdate(id,amount+existingPoint))
+            .thenReturn(new UserPoint(id,amount+existingPoint,System.currentTimeMillis()));
         TransactionType type = TransactionType.CHARGE;
 
         UserPoint userPoint = pointService.chargeOrUse(id, amount, type);
-        assertEquals(userPoint.point(), amount);
-
-        // case2 (같은유저가 한번더 충전)
-        UserPoint userPoint2 = pointService.chargeOrUse(id, amount, type);
-        assertEquals(userPoint2.point(), 2 * amount);
+        assertEquals(5000L, userPoint.point());
     }
 
 }

@@ -1,9 +1,9 @@
 package io.hhplus.tdd.point;
 
 import io.hhplus.tdd.CustomException;
-import io.hhplus.tdd.database.PointHistoryTable;
-import io.hhplus.tdd.database.UserPointTable;
 import io.hhplus.tdd.ErrorCode;
+import io.hhplus.tdd.point.repository.PointHistoryRepository;
+import io.hhplus.tdd.point.repository.UserPointRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -11,8 +11,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class PointService {
 
-    private final UserPointTable userPointTable;
-    private final PointHistoryTable pointHistoryTable;
+    private final UserPointRepository userPointRepository;
+    private final PointHistoryRepository pointHistoryRepository;
 
     /**
      * 특정유저의 포인트 조회
@@ -22,7 +22,7 @@ public class PointService {
         if (id <= 0) {
             throw new CustomException(ErrorCode.USER_ID_ERROR);
         }
-        return userPointTable.selectById(id);
+        return userPointRepository.selectById(id);
     }
 
 
@@ -41,10 +41,10 @@ public class PointService {
         }
 
         // point history insert
-        pointHistoryTable.insert(id, amount, type, System.currentTimeMillis());
+        pointHistoryRepository.insert(id, amount, type);
 
         // userPoint update & return
-        UserPoint userPoint = userPointTable.selectById(id);
-        return userPointTable.insertOrUpdate(id, userPoint.point() + amount * type.getSign());
+        UserPoint userPoint = this.userPointRepository.selectById(id);
+        return this.userPointRepository.insertOrUpdate(id, userPoint.point() + amount * type.getSign());
     }
 }
