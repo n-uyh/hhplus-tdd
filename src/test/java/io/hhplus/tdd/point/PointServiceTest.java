@@ -167,8 +167,9 @@ class PointServiceTest {
 
         assertEquals(ErrorCode.POINT_MIN_ERROR, exception.getErrorCode());
 
-        // 에러 발생시 pointHistory.insert() 는 실행이 되면 안된다.
+        // 에러 발생시 pointHistoryRepository.insert(), userPointRepository.insertOrUpdate() 는 실행하면 안된다
         verify(pointHistoryRepository, never()).insert(eq(id),anyLong(),any(TransactionType.class));
+        verify(userPointRepository, never()).insertOrUpdate(eq(id),anyLong());
     }
 
     @Test
@@ -185,8 +186,9 @@ class PointServiceTest {
 
         assertEquals(ErrorCode.POINT_MAX_ERROR, exception.getErrorCode());
 
-        // 에러 발생시 pointHistory.insert() 는 실행이 되면 안된다.
+        // 에러 발생시 pointHistoryRepository.insert(), userPointRepository.insertOrUpdate() 는 실행하면 안된다.
         verify(pointHistoryRepository, never()).insert(eq(id),anyLong(),any(TransactionType.class));
+        verify(userPointRepository, never()).insertOrUpdate(eq(id),anyLong());
     }
 
 }
