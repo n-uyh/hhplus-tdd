@@ -2,8 +2,11 @@ package io.hhplus.tdd.point;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
 import io.hhplus.tdd.CustomException;
@@ -163,6 +166,24 @@ class PointServiceTest {
                 () -> pointService.chargeOrUse(id, useAmount, TransactionType.USE));
 
         assertEquals(ErrorCode.POINT_REMAINING_ERROR, exception.getErrorCode());
+    }
+
+    @Test
+    @DisplayName("포인트 충전 시 최대잔고(100,000)를 초과하는 경우 POINT_MAX_ERROR 가 발생한다")
+    void ifPointAmountIsGreaterThanMaxPoint_100_000_then_POINT_MAX_ERROR() {
+        long id = 1L;
+        long remaintPoint = 99_999L;
+        long chargeAmount = 1000L;
+
+        when(userPointRepository.selectById(id)).thenReturn(new UserPoint(id,remaintPoint,System.currentTimeMillis()));
+
+        CustomException exception = assertThrows(CustomException.class,
+            () -> pointService.chargeOrUse(id, chargeAmount, TransactionType.CHARGE));
+
+        assertEquals(ErrorCode.POINT_MAX_ERROR, exception.getErrorCode());
+
+        // 에러 발생시 pointHistory.insert() 는 실행이 되면 안된다.
+        verify(pointHistoryRepository, never()).insert(eq(id),anyLong(),any(TransactionType.class));
     }
 
 }

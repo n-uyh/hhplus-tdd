@@ -46,8 +46,12 @@ public class PointService {
 
         UserPoint userPoint = this.userPointRepository.selectById(id);
         long postPoint = userPoint.point() + amount * type.getSign();
-        if (postPoint < 0) {
+        long min = 0;
+        long max = 100_000L;
+        if (postPoint < min) {
             throw new CustomException(ErrorCode.POINT_REMAINING_ERROR);
+        } else if (postPoint > max) {
+            throw new CustomException(ErrorCode.POINT_MAX_ERROR);
         }
 
         // point history insert
