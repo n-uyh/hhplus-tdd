@@ -1,19 +1,39 @@
 package io.hhplus.tdd.point;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.when;
 
 import io.hhplus.tdd.CustomException;
 import io.hhplus.tdd.ErrorCode;
+import io.hhplus.tdd.point.entity.PointHistory;
+import io.hhplus.tdd.point.entity.UserPoint;
+import io.hhplus.tdd.point.repository.PointHistoryRepository;
+import io.hhplus.tdd.point.repository.UserPointRepository;
+import io.hhplus.tdd.point.service.PointService;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-@SpringBootTest
+@ExtendWith(MockitoExtension.class)
 class PointServiceTest {
 
-    @Autowired
-    PointService pointService;
+    @Mock
+    private UserPointRepository userPointRepository;
+
+    @Mock
+    private PointHistoryRepository pointHistoryRepository;
+
+    @InjectMocks
+    private PointService pointService;
+
 
     @Test
     @DisplayName("특정유저의 포인트 조회시 유저의 id가 0이하인 경우 USER_ID_ERROR 오류가 발생한다")
@@ -33,12 +53,15 @@ class PointServiceTest {
     void findOneUserPoint() {
         // 특정유저의 id
         long id = 1L;
+        long existingPoint = 300L;
+        when(userPointRepository.selectById(id)).thenReturn(new UserPoint(id,existingPoint,System.currentTimeMillis()));
 
         // 특정유저의 포인트 조회
         UserPoint userPoint = pointService.findOneUserPoint(id);
 
         // 검증
         assertEquals(id, userPoint.id());
+        assertEquals(existingPoint, userPoint.point());
     }
 
     @Test
@@ -86,17 +109,45 @@ class PointServiceTest {
     @Test
     @DisplayName("특정유저의 포인트 충전 성공케이스 테스트")
     void chargeUserPoint() {
-        // case1
         long id = 1L;
-        long amount = 2000;
-        TransactionType type = TransactionType.CHARGE;
+        AtomicLong currentPoint = new AtomicLong(3000L); // 충전,사용 케이스 동시 테스트 위한 가변변수 선언.
 
-        UserPoint userPoint = pointService.chargeOrUse(id, amount, type);
-        assertEquals(userPoint.point(), amount);
+        when(userPointRepository.selectById(id))
+            .thenAnswer(invocation -> new UserPoint(id, currentPoint.get(), System.currentTimeMillis()));
 
-        // case2 (같은유저가 한번더 충전)
-        UserPoint userPoint2 = pointService.chargeOrUse(id, amount, type);
-        assertEquals(userPoint2.point(), 2 * amount);
+        when(userPointRepository.insertOrUpdate(eq(id),anyLong()))
+            .thenAnswer(invocation -> {
+                long updatedPoint = invocation.getArgument(1);
+                currentPoint.set(updatedPoint);
+                return new UserPoint(id,updatedPoint,System.currentTimeMillis());
+            });
+
+        // 충전케이스 테스트
+        long charge = 2000L;
+        UserPoint userPoint = pointService.chargeOrUse(id, charge, TransactionType.CHARGE);
+        assertEquals(5000L, userPoint.point());
+
+        // 사용케이스 테스트
+        long use = 200L;
+        UserPoint userPoint2 = pointService.chargeOrUse(id, use, TransactionType.USE);
+        assertEquals(4800L,  userPoint2.point());
+    }
+
+    @Test
+    @DisplayName("특정유저의 포인트 충전/사용 내역 조회")
+    void findPointHistoriesByUserId() {
+        long id = 1L;
+
+        when(pointHistoryRepository.selectAllByUserId(id))
+            .thenReturn(List.of(
+                new PointHistory(1,id,3000L,TransactionType.CHARGE,System.currentTimeMillis()),
+                new PointHistory(2,id,2500L,TransactionType.USE,System.currentTimeMillis())
+            ));
+
+        List<PointHistory> histories = pointService.findPointHistoriesByUserId(id);
+
+        assertEquals(2, histories.size());
+        assertEquals(id, histories.get(0).id());
     }
 
 }

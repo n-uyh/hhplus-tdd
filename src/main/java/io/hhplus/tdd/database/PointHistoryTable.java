@@ -1,7 +1,7 @@
 package io.hhplus.tdd.database;
 
 
-import io.hhplus.tdd.point.PointHistory;
+import io.hhplus.tdd.point.entity.PointHistory;
 import io.hhplus.tdd.point.TransactionType;
 import org.springframework.stereotype.Component;
 
