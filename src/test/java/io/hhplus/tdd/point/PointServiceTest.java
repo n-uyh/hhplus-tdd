@@ -80,12 +80,12 @@ class PointServiceTest {
         CustomException e = assertThrows(CustomException.class, () -> pointService.chargeOrUse(id, amount, type));
 
         // 오류코드 검증
-        assertEquals(ErrorCode.USER_ID_ERROR.getCode(), e.getErrorCode().getCode());
+        assertEquals(ErrorCode.USER_ID_ERROR, e.getErrorCode());
 
         // case2
         long id2 = -1;
         CustomException e2 = assertThrows(CustomException.class, () -> pointService.chargeOrUse(id2, amount, type));
-        assertEquals(ErrorCode.USER_ID_ERROR.getCode(), e2.getErrorCode().getCode());
+        assertEquals(ErrorCode.USER_ID_ERROR, e2.getErrorCode());
     }
 
     @Test
@@ -101,12 +101,12 @@ class PointServiceTest {
         CustomException e = assertThrows(CustomException.class, () -> pointService.chargeOrUse(id, amount, type));
 
         // 오류코드 검증
-        assertEquals(ErrorCode.POINT_AMOUNT_ERROR.getCode(), e.getErrorCode().getCode());
+        assertEquals(ErrorCode.POINT_AMOUNT_ERROR, e.getErrorCode());
 
         // case2
         long amount2 = -2000;
         CustomException e2 = assertThrows(CustomException.class, () -> pointService.chargeOrUse(id, amount2, type));
-        assertEquals(ErrorCode.POINT_AMOUNT_ERROR.getCode(), e2.getErrorCode().getCode());
+        assertEquals(ErrorCode.POINT_AMOUNT_ERROR, e2.getErrorCode());
     }
 
     @Test
