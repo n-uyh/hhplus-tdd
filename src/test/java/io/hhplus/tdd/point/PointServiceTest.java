@@ -150,4 +150,19 @@ class PointServiceTest {
         assertEquals(id, histories.get(0).id());
     }
 
+    @Test
+    @DisplayName("포인트 사용 시 기존 포인트 잔액보다 사용하는 금액이 클 경우 POINT_REMAINING_ERROR 가 발생한다")
+    void ifUseAmountIsGreaterThanRemainingPoint_then_POINT_REMAINING_ERROR() {
+        long id = 1L;
+        long remaintPoint = 200L;
+        long useAmount = 1000L;
+
+        when(userPointRepository.selectById(id)).thenReturn(new UserPoint(id,remaintPoint,System.currentTimeMillis()));
+
+        CustomException exception = assertThrows(CustomException.class,
+                () -> pointService.chargeOrUse(id, useAmount, TransactionType.USE));
+
+        assertEquals(ErrorCode.POINT_REMAINING_ERROR, exception.getErrorCode());
+    }
+
 }

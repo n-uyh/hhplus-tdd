@@ -44,12 +44,17 @@ public class PointService {
             throw new CustomException(ErrorCode.POINT_AMOUNT_ERROR);
         }
 
+        UserPoint userPoint = this.userPointRepository.selectById(id);
+        long postPoint = userPoint.point() + amount * type.getSign();
+        if (postPoint < 0) {
+            throw new CustomException(ErrorCode.POINT_REMAINING_ERROR);
+        }
+
         // point history insert
         pointHistoryRepository.insert(id, amount, type);
 
         // userPoint update & return
-        UserPoint userPoint = this.userPointRepository.selectById(id);
-        return this.userPointRepository.insertOrUpdate(id, userPoint.point() + amount * type.getSign());
+        return this.userPointRepository.insertOrUpdate(id, postPoint);
     }
 
     /**
