@@ -2,12 +2,14 @@ package io.hhplus.tdd.point.service;
 
 import io.hhplus.tdd.CustomException;
 import io.hhplus.tdd.ErrorCode;
+import io.hhplus.tdd.point.LockManager;
 import io.hhplus.tdd.point.TransactionType;
 import io.hhplus.tdd.point.entity.PointHistory;
 import io.hhplus.tdd.point.entity.UserPoint;
 import io.hhplus.tdd.point.repository.PointHistoryRepository;
 import io.hhplus.tdd.point.repository.UserPointRepository;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -17,6 +19,8 @@ public class PointService {
 
     private final UserPointRepository userPointRepository;
     private final PointHistoryRepository pointHistoryRepository;
+
+    private final LockManager lockManager = new LockManager();
 
     /**
      * 특정유저의 포인트 조회
@@ -44,21 +48,28 @@ public class PointService {
             throw new CustomException(ErrorCode.POINT_AMOUNT_ERROR);
         }
 
-        UserPoint userPoint = this.userPointRepository.selectById(id);
-        long postPoint = userPoint.point() + amount * type.getSign();
-        long min = 0;
-        long max = 100_000L;
-        if (postPoint < min) {
-            throw new CustomException(ErrorCode.POINT_MIN_ERROR);
-        } else if (postPoint > max) {
-            throw new CustomException(ErrorCode.POINT_MAX_ERROR);
+        Lock lock = lockManager.getLock(id);
+        try {
+            lock.lock();
+
+            UserPoint userPoint = userPointRepository.selectById(id);
+            long postPoint = userPoint.point() + amount * type.getSign();
+            long min = 0;
+            long max = 100_000L;
+            if (postPoint < min) {
+                throw new CustomException(ErrorCode.POINT_MIN_ERROR);
+            } else if (postPoint > max) {
+                throw new CustomException(ErrorCode.POINT_MAX_ERROR);
+            }
+
+            // point history insert
+            pointHistoryRepository.insert(id, amount, type);
+
+            // userPoint update & return
+            return userPointRepository.insertOrUpdate(id, postPoint);
+        } finally {
+            lock.unlock();
         }
-
-        // point history insert
-        pointHistoryRepository.insert(id, amount, type);
-
-        // userPoint update & return
-        return this.userPointRepository.insertOrUpdate(id, postPoint);
     }
 
     /**
