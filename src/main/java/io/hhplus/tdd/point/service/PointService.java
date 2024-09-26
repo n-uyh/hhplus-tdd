@@ -49,7 +49,7 @@ public class PointService {
         long min = 0;
         long max = 100_000L;
         if (postPoint < min) {
-            throw new CustomException(ErrorCode.POINT_REMAINING_ERROR);
+            throw new CustomException(ErrorCode.POINT_MIN_ERROR);
         } else if (postPoint > max) {
             throw new CustomException(ErrorCode.POINT_MAX_ERROR);
         }

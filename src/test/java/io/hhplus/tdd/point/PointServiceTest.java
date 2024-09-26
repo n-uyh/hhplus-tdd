@@ -154,8 +154,8 @@ class PointServiceTest {
     }
 
     @Test
-    @DisplayName("포인트 사용 시 기존 포인트 잔액보다 사용하는 금액이 클 경우 POINT_REMAINING_ERROR 가 발생한다")
-    void ifUseAmountIsGreaterThanRemainingPoint_then_POINT_REMAINING_ERROR() {
+    @DisplayName("포인트 사용 시 기존 포인트 잔액보다 사용하는 금액이 클 경우 POINT_MIN_ERROR 가 발생한다")
+    void ifUseAmountIsGreaterThanRemainingPoint_then_POINT_MIN_ERROR() {
         long id = 1L;
         long remaintPoint = 200L;
         long useAmount = 1000L;
@@ -165,7 +165,7 @@ class PointServiceTest {
         CustomException exception = assertThrows(CustomException.class,
                 () -> pointService.chargeOrUse(id, useAmount, TransactionType.USE));
 
-        assertEquals(ErrorCode.POINT_REMAINING_ERROR, exception.getErrorCode());
+        assertEquals(ErrorCode.POINT_MIN_ERROR, exception.getErrorCode());
     }
 
     @Test
