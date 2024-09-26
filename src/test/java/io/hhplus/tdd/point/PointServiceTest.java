@@ -166,6 +166,9 @@ class PointServiceTest {
                 () -> pointService.chargeOrUse(id, useAmount, TransactionType.USE));
 
         assertEquals(ErrorCode.POINT_MIN_ERROR, exception.getErrorCode());
+
+        // 에러 발생시 pointHistory.insert() 는 실행이 되면 안된다.
+        verify(pointHistoryRepository, never()).insert(eq(id),anyLong(),any(TransactionType.class));
     }
 
     @Test
