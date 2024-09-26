@@ -2,8 +2,11 @@ package io.hhplus.tdd.point;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
 import io.hhplus.tdd.CustomException;
@@ -77,12 +80,12 @@ class PointServiceTest {
         CustomException e = assertThrows(CustomException.class, () -> pointService.chargeOrUse(id, amount, type));
 
         // 오류코드 검증
-        assertEquals(ErrorCode.USER_ID_ERROR.getCode(), e.getErrorCode().getCode());
+        assertEquals(ErrorCode.USER_ID_ERROR, e.getErrorCode());
 
         // case2
         long id2 = -1;
         CustomException e2 = assertThrows(CustomException.class, () -> pointService.chargeOrUse(id2, amount, type));
-        assertEquals(ErrorCode.USER_ID_ERROR.getCode(), e2.getErrorCode().getCode());
+        assertEquals(ErrorCode.USER_ID_ERROR, e2.getErrorCode());
     }
 
     @Test
@@ -98,12 +101,12 @@ class PointServiceTest {
         CustomException e = assertThrows(CustomException.class, () -> pointService.chargeOrUse(id, amount, type));
 
         // 오류코드 검증
-        assertEquals(ErrorCode.POINT_AMOUNT_ERROR.getCode(), e.getErrorCode().getCode());
+        assertEquals(ErrorCode.POINT_AMOUNT_ERROR, e.getErrorCode());
 
         // case2
         long amount2 = -2000;
         CustomException e2 = assertThrows(CustomException.class, () -> pointService.chargeOrUse(id, amount2, type));
-        assertEquals(ErrorCode.POINT_AMOUNT_ERROR.getCode(), e2.getErrorCode().getCode());
+        assertEquals(ErrorCode.POINT_AMOUNT_ERROR, e2.getErrorCode());
     }
 
     @Test
@@ -148,6 +151,44 @@ class PointServiceTest {
 
         assertEquals(2, histories.size());
         assertEquals(id, histories.get(0).id());
+    }
+
+    @Test
+    @DisplayName("포인트 사용 시 기존 포인트 잔액보다 사용하는 금액이 클 경우 POINT_MIN_ERROR 가 발생한다")
+    void ifUseAmountIsGreaterThanRemainingPoint_then_POINT_MIN_ERROR() {
+        long id = 1L;
+        long remaintPoint = 200L;
+        long useAmount = 1000L;
+
+        when(userPointRepository.selectById(id)).thenReturn(new UserPoint(id,remaintPoint,System.currentTimeMillis()));
+
+        CustomException exception = assertThrows(CustomException.class,
+                () -> pointService.chargeOrUse(id, useAmount, TransactionType.USE));
+
+        assertEquals(ErrorCode.POINT_MIN_ERROR, exception.getErrorCode());
+
+        // 에러 발생시 pointHistoryRepository.insert(), userPointRepository.insertOrUpdate() 는 실행하면 안된다
+        verify(pointHistoryRepository, never()).insert(eq(id),anyLong(),any(TransactionType.class));
+        verify(userPointRepository, never()).insertOrUpdate(eq(id),anyLong());
+    }
+
+    @Test
+    @DisplayName("포인트 충전 시 최대잔고(100,000)를 초과하는 경우 POINT_MAX_ERROR 가 발생한다")
+    void ifPointAmountIsGreaterThanMaxPoint_100_000_then_POINT_MAX_ERROR() {
+        long id = 1L;
+        long remaintPoint = 99_999L;
+        long chargeAmount = 1000L;
+
+        when(userPointRepository.selectById(id)).thenReturn(new UserPoint(id,remaintPoint,System.currentTimeMillis()));
+
+        CustomException exception = assertThrows(CustomException.class,
+            () -> pointService.chargeOrUse(id, chargeAmount, TransactionType.CHARGE));
+
+        assertEquals(ErrorCode.POINT_MAX_ERROR, exception.getErrorCode());
+
+        // 에러 발생시 pointHistoryRepository.insert(), userPointRepository.insertOrUpdate() 는 실행하면 안된다.
+        verify(pointHistoryRepository, never()).insert(eq(id),anyLong(),any(TransactionType.class));
+        verify(userPointRepository, never()).insertOrUpdate(eq(id),anyLong());
     }
 
 }
